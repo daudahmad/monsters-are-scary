@@ -1,19 +1,23 @@
 const router = require("express").Router();
-const GridOfRooms = require("../models/gridOfRooms");
+const GridOfRooms = require("../models/GridOfRooms");
 
-let gridOfRooms = new GridOfRooms(50, 50);
+const sizeX = 100;
+const sizeY = 100;
+let gridOfRooms = new GridOfRooms(sizeX, sizeY);
 gridOfRooms.initializeGrid();
 // console.log(gridOfRooms);
-// console.log(grid.gridOfRooms);
-// console.log(grid.gridOfRooms[0][0]);
-// console.log(grid.gridOfRooms[0][1]);
-// console.log(grid.gridOfRooms[1][1]);
+
+const validCoordinates = (x, y) => x >= 0 && x < sizeX && y >= 0 && y < sizeY;
 
 router.get("/room/:x/:y", function(req, res) {
-  res
-    .status(200)
-    .type("text")
-    .send(gridOfRooms.rooms[req.params.x][req.params.y]);
+  if (validCoordinates(req.params.x, req.params.y)) {
+    res
+      .status(200)
+      .type("text")
+      .send(gridOfRooms.rooms[req.params.x][req.params.y]);
+  } else {
+    res.status(400).send();
+  }
 });
 
 module.exports = router;

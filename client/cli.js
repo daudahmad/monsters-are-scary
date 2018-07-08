@@ -7,7 +7,10 @@ const utils = require("./utils");
 /*
     Declaraing the cli function
 */
-const cli = function() {};
+const cli = function() {
+  // Start a new Game
+  this.game = new Game();
+};
 
 /*
     Print and introduction to the game when it first launches 
@@ -39,13 +42,31 @@ cli.prototype.printIntroduction = function() {
     [
       `>> To begin crawling: Move North: ${utils.styleOutput(
         "MN"
-      )}, Move South: ${utils.styleOutput("MS")}, Move East: ${utils.styleOutput(
-        "ME"
-      )}, Move West: ${utils.styleOutput("MW")}`
+      )}, Move South: ${utils.styleOutput(
+        "MS"
+      )}, Move East: ${utils.styleOutput("ME")}, Move West: ${utils.styleOutput(
+        "MW"
+      )}`
     ]
   );
 
   console.log(table.toString());
+};
+
+cli.prototype.playerScore = function() {
+  return utils.styleOutput(this.game.score);
+};
+
+cli.prototype.playerHealth = function() {
+  return utils.styleOutput(this.game.health);
+};
+
+cli.prototype.playerCoordinates = function() {
+  return utils.styleOutput(this.game.coordinates);
+};
+
+cli.prototype.playerEncountered = function() {
+  return utils.styleOutput(this.game.lastRoomContents);
 };
 
 cli.prototype.processCommands = function(command) {
@@ -54,7 +75,6 @@ cli.prototype.processCommands = function(command) {
     command = command.trim().toUpperCase();
     if (validCommands.includes(command)) {
       return this.game.move(command);
-      //   console.log(this.game);
     } else if (command === "EXIT" || command === "E") {
       this.exit();
     } else {
@@ -69,10 +89,10 @@ cli.prototype.printMoveSuccess = function(response) {
   const table = new Table();
   table.push(
     [response.message],
-    [`>> You found: ${this.game.lastRoomContents}`],
-    [`>> Current room coordinates ${this.game.coordinates}`],
-    [`>> Your SCORE: ${this.game.score}`],
-    [`>> Your HEALTH: ${this.game.health}`]
+    [`>> You found: ${this.playerEncountered()}`],
+    [`>> Current room coordinates ${this.playerCoordinates()}`],
+    [`>> Your SCORE: ${this.playerScore()}`],
+    [`>> Your HEALTH: ${this.playerHealth()}`]
   );
   console.log(table.toString());
 };
@@ -88,14 +108,15 @@ cli.prototype.printFinalScore = function(response) {
   if (response) {
     table.push(
       [response.message],
-      [`>> You found: ${this.game.lastRoomContents}`],
-      [`>> Your FINAL SCORE: ${this.game.score}`],
+      [`>> You found: ${this.playerEncountered()}`],
+      [`>> Your FINAL COORDINATES: ${this.playerCoordinates()}`],
+      [`>> Your FINAL SCORE: ${this.playerScore()}`],
       [`Game exiting. Bye!`]
     );
   } else {
     table.push(
       [`Game exiting. Bye!`],
-      [`>> Your FINAL SCORE: ${this.game.score}`]
+      [`>> Your FINAL SCORE: ${this.playerScore()}`]
     );
   }
   console.log(table.toString());
@@ -107,38 +128,30 @@ cli.prototype.exit = function(response) {
 };
 
 cli.prototype.init = function() {
-  // Create a new Game
-  this.game = new Game();
-
   this.printIntroduction();
 
   const interface = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
-    prompt: "MONSTERS-ARE-SCARY>> "
+    prompt: "MONSTERS ARE SCARY>> "
   });
 
   interface.prompt();
 
-  interface.on("line", command => {
+  interface.on("line", async command => {
     // this should return a promise since commands will be processed asynchronously
-    this.processCommands(command)
-      .then(response => {
-        // console.log(response);
-        // console.log(this.game);
-        if (response.isDead) {
-          this.exit(response);
-        } else {
-          this.printMoveSuccess(response);
-        }
-        interface.prompt();
-      })
-      .catch(err => {
-        this.printMoveFailure(err);
-        // console.log("movement failure");
-        // console.log(err);
-        interface.prompt();
-      });
+    try {
+      const response = await this.processCommands(command);
+      if (response.isDead) {
+        this.exit(response);
+      } else {
+        this.printMoveSuccess(response);
+      }
+      interface.prompt();
+    } catch (err) {
+      this.printMoveFailure(err);
+      interface.prompt();
+    }
   });
 
   interface.on("close", () => {

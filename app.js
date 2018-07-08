@@ -6,7 +6,7 @@ const app = {
     // console.log("init called");
 
     // Start the server
-    server.init();
+    server.server.init();
 
     // Start the game's command line interface after a short while
     setTimeout(() => {

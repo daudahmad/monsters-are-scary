@@ -14,6 +14,10 @@ class Game {
     return `(${this.x},${this.y})`;
   }
 
+  get distanceTravelled() {
+    return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+  }
+
   move(moveDirection) {
     return new Promise((resolve, reject) => {
       // Check if movement is possible

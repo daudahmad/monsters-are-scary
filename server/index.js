@@ -13,13 +13,15 @@ const server = {
     });
 
     app.use(function(req, res) {
-      res.status(404);
+      res.status(404).send();
     });
 
     app.listen(PORT, () =>
-      console.log(`MONSTERS ARE SCARY API server started...listening on port ${PORT}`)
+      console.log(
+        `MONSTERS ARE SCARY API server started...listening on port ${PORT}`
+      )
     );
   }
 };
 
-module.exports = server;
+module.exports = { server, app };
