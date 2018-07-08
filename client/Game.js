@@ -7,24 +7,29 @@ class Game {
     this.y = 0;
     this.health = 5;
     this.score = 0;
+    this.lastRoomContents = "";
+  }
+
+  get coordinates() {
+    return `(${this.x},${this.y})`;
   }
 
   move(moveDirection) {
-    console.log(moveDirection);
     return new Promise((resolve, reject) => {
       // Check if movement is possible
       if (this.canMove(moveDirection)) {
         // Fetch room contents
         this.checkRoomContents(this.getNewCoordinates(moveDirection)).then(
           roomContents => {
-            console.log(`checkRoomContents response: ${roomContents}`);
+            // console.log(`checkRoomContents response: ${roomContents}`);
+            this.lastRoomContents = roomContents;
             // Move player
             this.movePlayer(moveDirection, roomContents);
             // Check health
             if (this.health === 0) {
               resolve({
                 isDead: true,
-                message: `Player died: Final score - ${this.score}`
+                message: `You have DIED!`
               });
             } else {
               resolve({ isDead: false, message: "Move successful" });
@@ -32,10 +37,10 @@ class Game {
           }
         );
       } else {
-        reject("Cannot move");
+        reject(
+          "You cannot move because there is no door in this direction, try moving in another direction"
+        );
       }
-      // `resolve(..)` to resolve/fulfill the promise
-      // `reject(..)` to reject the promise
     });
   }
 
@@ -48,10 +53,8 @@ class Game {
     const url = `${constants.serviceUrl}${newCoordinates.x}/${
       newCoordinates.y
     }`;
-    console.log(url);
     return rp(url)
       .then(function(response) {
-        console.log(`Outputting response from room server: ${response}`);
         return response;
       })
       .catch(function(err) {
@@ -95,30 +98,6 @@ class Game {
   encounteredMonster(roomContents) {
     return roomContents === "MONSTER";
   }
-
-  // incrementX() {
-  //   this.x++;
-  // }
-
-  // decrementX() {
-  //   if (this.canDecrement(this.x)) {
-  //     this.x--;
-  //   } else {
-  //     console.log("You have hit the wall...there's no door to the South");
-  //   }
-  // }
-
-  // incrementY() {
-  //   this.y++;
-  // }
-
-  // decrementY() {
-  //   if (this.canDecrement(this.y)) {
-  //     this.y--;
-  //   } else {
-  //     console.log("You have hit the wall...there's no door to the West");
-  //   }
-  // }
 }
 
 module.exports = Game;

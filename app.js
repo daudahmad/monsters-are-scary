@@ -3,7 +3,7 @@ const client = require("./client");
 
 const app = {
   init() {
-    console.log("init called");
+    // console.log("init called");
 
     // Start the server
     server.init();

@@ -17,7 +17,7 @@ const server = {
     });
 
     app.listen(PORT, () =>
-      console.log(`MONSTERS ARE SCARY server started...listening on port ${PORT}`)
+      console.log(`MONSTERS ARE SCARY API server started...listening on port ${PORT}`)
     );
   }
 };

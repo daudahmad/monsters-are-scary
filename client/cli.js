@@ -1,98 +1,121 @@
 const readline = require("readline");
-const util = require("util");
-// const EventEmitter = require("events");
 const Game = require("./Game");
-
-// class cliEventEmitter extends EventEmitter {}
-
-// const mycliEmitter = new cliEventEmitter();
-
-// mycliEmitter.on("exit", () => {
-//   console.log("Game exiting. Bye!");
-//   process.exit(0);
-// });
-
-// mycliEmitter.on("move", function(moveDirection) {
-  //   console.log(moveDirection);
-  // myCli.move(moveDirection);
-// });
-
-// mycliEmitter.on("MN", function(moveDirection) {
-  //   console.log(moveDirection);
-  //   myCli.move(moveDirection);
-// });
+const Table = require("cli-table");
+const constants = require("./constants");
+const utils = require("./utils");
 
 /*
     Declaraing the cli function
 */
-const cli = function() {
-  // this.game = new Game();
-  // console.log(this.game);
-};
+const cli = function() {};
 
 /*
     Print and introduction to the game when it first launches 
 */
-cli.prototype.introduction = function() {
-  console.log("\n", "------Welcome to MONSTER ARE SCARY!------", "\n");
-  console.log(
-    "* Monsters Are Scary places the player in a grid of rooms. Each room has 4 doors."
-  );
-  console.log(
-    "* Some rooms have monsters in them. Other rooms have gold in them."
-  );
-  console.log(
-    "* When you find GOLD your score will increment by 1. When you encounter a monster you will lose 1 health"
-  );
-  console.log("* You will start with 5 health and die when health reaches 0");
-  console.log(
-    "* The player can move either North, South, East or West by typing a command at the console. "
-  );
-  console.log(
-    "* To begin playing: Move North: MN, Move South: MS, Move East: ME, Move West: MW"
-  );
-  console.log(
-    "* To Move North type: MN, To Move South: MS, To Move East: ME, To Move West: MW"
-  );
-};
+cli.prototype.printIntroduction = function() {
+  const table = new Table();
 
-// cli.prototype.move = function(moveDirection) {
-//   this.game.move(moveDirection);
-// };
+  table.push(
+    ["=====================Welcome to MONSTER ARE SCARY!====================="],
+    [
+      ">> Monsters Are Scary places you in a dungeon with grid of rooms. Each room has 4 doors."
+    ],
+    [">> Some rooms have monsters in them. Other rooms have gold in them."],
+    [
+      ">> When you find GOLD your score will increment by 1. When you encounter a MONSTER you will lose 1 health."
+    ],
+    [">> You will start with 5 health and die when health reaches 0."],
+    [
+      ">> You can move either North, South, East or West by typing a command at the console."
+    ],
+    [
+      `>> You have been placed inside a room with (0,0) coordinates and the game has started.`
+    ],
+    [
+      `>> Current health: ${this.game.health} || Current score: ${
+        this.game.score
+      } `
+    ],
+    [
+      `>> To begin crawling: Move North: ${utils.styleOutput(
+        "MN"
+      )}, Move South: ${utils.styleOutput("MS")}, Move East: ${utils.styleOutput(
+        "ME"
+      )}, Move West: ${utils.styleOutput("MW")}`
+    ]
+  );
+
+  console.log(table.toString());
+};
 
 cli.prototype.processCommands = function(command) {
   if (typeof command == "string" && command.trim().length > 0) {
     const validCommands = ["MN", "MS", "ME", "MW"];
     command = command.trim().toUpperCase();
     if (validCommands.includes(command)) {
-      //   mycliEmitter.emit("move", command);
       return this.game.move(command);
       //   console.log(this.game);
     } else if (command === "EXIT" || command === "E") {
       this.exit();
-      //   mycliEmitter.emit("exit");
     } else {
-      //   console.log();
-      return Promise.resolve("Invalid command, please try again!");
+      return Promise.reject(constants.invalidCommandsMsg);
     }
+  } else {
+    return Promise.reject(constants.invalidCommandsMsg);
   }
 };
 
-cli.prototype.exit = function() {
-  console.log("Game exiting. Bye!");
+cli.prototype.printMoveSuccess = function(response) {
+  const table = new Table();
+  table.push(
+    [response.message],
+    [`>> You found: ${this.game.lastRoomContents}`],
+    [`>> Current room coordinates ${this.game.coordinates}`],
+    [`>> Your SCORE: ${this.game.score}`],
+    [`>> Your HEALTH: ${this.game.health}`]
+  );
+  console.log(table.toString());
+};
+
+cli.prototype.printMoveFailure = function(err) {
+  const table = new Table();
+  table.push([err]);
+  console.log(table.toString());
+};
+
+cli.prototype.printFinalScore = function(response) {
+  const table = new Table();
+  if (response) {
+    table.push(
+      [response.message],
+      [`>> You found: ${this.game.lastRoomContents}`],
+      [`>> Your FINAL SCORE: ${this.game.score}`],
+      [`Game exiting. Bye!`]
+    );
+  } else {
+    table.push(
+      [`Game exiting. Bye!`],
+      [`>> Your FINAL SCORE: ${this.game.score}`]
+    );
+  }
+  console.log(table.toString());
+};
+
+cli.prototype.exit = function(response) {
+  this.printFinalScore(response);
   process.exit(0);
 };
 
 cli.prototype.init = function() {
+  // Create a new Game
   this.game = new Game();
-  console.log(this.game);
 
-  this.introduction();
+  this.printIntroduction();
 
   const interface = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
-    prompt: "MONSTERS-ARE-CRAZY>"
+    prompt: "MONSTERS-ARE-SCARY>> "
   });
 
   interface.prompt();
@@ -101,15 +124,19 @@ cli.prototype.init = function() {
     // this should return a promise since commands will be processed asynchronously
     this.processCommands(command)
       .then(response => {
-        console.log(response);
-        console.log(this.game);
+        // console.log(response);
+        // console.log(this.game);
         if (response.isDead) {
-          this.exit();
+          this.exit(response);
+        } else {
+          this.printMoveSuccess(response);
         }
         interface.prompt();
       })
       .catch(err => {
-        console.log(err);
+        this.printMoveFailure(err);
+        // console.log("movement failure");
+        // console.log(err);
         interface.prompt();
       });
   });
@@ -118,7 +145,5 @@ cli.prototype.init = function() {
     this.exit();
   });
 };
-
-// const myCli = new cli();
 
 module.exports = new cli();

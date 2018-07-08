@@ -10,7 +10,6 @@ gridOfRooms.initializeGrid();
 // console.log(grid.gridOfRooms[1][1]);
 
 router.get("/room/:x/:y", function(req, res) {
-  //   console.log(req.params.x);
   res
     .status(200)
     .type("text")
