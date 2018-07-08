@@ -127,6 +127,9 @@ cli.prototype.exit = function(response) {
   process.exit(0);
 };
 
+/*
+  Initialize the command prompt and start processing commands
+*/
 cli.prototype.init = function() {
   this.printIntroduction();
 

@@ -1,4 +1,4 @@
-const server = require("./server");
+const expressServer = require("./server");
 const client = require("./client");
 
 const app = {
@@ -6,7 +6,7 @@ const app = {
     // console.log("init called");
 
     // Start the server
-    server.server.init();
+    expressServer.server.init();
 
     // Start the game's command line interface after a short while
     setTimeout(() => {

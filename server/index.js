@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 
 const PORT = process.env.PORT || 8080;
+let running;
 
 const server = {
   init() {
@@ -16,11 +17,15 @@ const server = {
       res.status(404).send();
     });
 
-    app.listen(PORT, () =>
+    running = app.listen(PORT, () =>
       console.log(
         `MONSTERS ARE SCARY API server started...listening on port ${PORT}`
       )
     );
+  },
+
+  close() {
+    running.close();
   }
 };
 
